@@ -3,6 +3,7 @@ import os
 import time
 import subprocess
 from datetime import datetime
+import json
 
 from typing import Union
 from fastapi import Depends, FastAPI, WebSocket
@@ -69,8 +70,8 @@ def connect_to_omero(user, password, host, port=4064, suid=None):
     print("Current group: ", group.getName())
     return conn
 
-def hpc_configure(job_name, env_name, modules, *args, **kwargs):
-    script = 'super-resolution-entry.py'
+def hpc_configure(job_name, env_name, script, modules, *args, **kwargs):
+    script = script
     batchscript = """#!/bin/bash
 #SBATCH --partition=gpu
 #SBATCH --job-name={name}
@@ -183,7 +184,7 @@ def submit(token: str, user: str, data_id: str, data_type: str, data_name: str, 
 
     omero_host = 'nife-images-dev.cancer.gov'
 
-    slurm_id = str(hpc_configure(job_name, "cycle_gan_infer", "",
+    slurm_id = str(hpc_configure(job_name, "cycle_gan_infer", "super-resolution-entry.py", "",
                            user=user, token=token, data_id=data_id, data_type=data_type, omero_host=omero_host))
 
     log_file, err_file = get_log_path(slurm_id, job_name)
@@ -200,7 +201,35 @@ def submit(token: str, user: str, data_id: str, data_type: str, data_name: str, 
     )
 
     crud.create_job(db=db, job=job)
-    return { 'msg':'Job has been submitted with Slurm Id: ' + slurm_id, 'slurm_id': slurm_id, 'job_name': job_name}
+    return { 'msg':'Job has been submitted with Slurm Id: ' + slurm_id, 'slurm_id': slurm_id, 'job_name': job_name, 'job_type': job_type}
+
+
+@app.post("/api/v1/merge_channels/submit")
+def merge_submit(data_path: str, db: Session = Depends(get_db)):
+    job_name = os.path.basename(data_path)
+    job_type = 'Merge_channels'
+    description = ''
+
+
+    omero_host = 'nife-images-dev.cancer.gov'
+
+    slurm_id = str(hpc_configure(job_name, "merge_channels", "Merge_channels.py", "", data_path=data_path))
+
+    log_file, err_file = get_log_path(slurm_id, job_name)
+
+    # return slurm_id
+    job = schemas.JobCreate(
+        title=job_name,
+        description=description,
+        job_type=job_type,
+        slurm_id=slurm_id,
+        status=2,
+        log_path=log_file,
+        error_path=err_file,
+        time=datetime.now()
+    )
+    crud.create_job(db=db, job=job)
+    return { 'msg':'Job has been submitted with Slurm Id: ' + slurm_id, 'slurm_id': slurm_id, 'job_name': job_name, 'job_type': job_type}
 
 
 @app.get("/api/v1/checklogs")
@@ -257,3 +286,39 @@ def update_job(slurm_id: str, status: int, db: Session = Depends(get_db)):
 def delete_jobs(id: int, db: Session = Depends(get_db)):
     job = crud.delete_job(db, id)
     return job
+
+
+def create_folder_structure_json(path): 
+    # Initialize the result dictionary with folder 
+    # name, type, and an empty list for children 
+    result = {'title': os.path.basename(path), 
+              'file_type': 'folder', 
+              'folder_path': path,
+              'children': []} 
+  
+    # Check if the path is a directory 
+    if not os.path.isdir(path): 
+        return result 
+  
+    # Iterate over the entries in the directory 
+    for entry in os.listdir(path): 
+       # Create the full path for the current entry 
+        entry_path = os.path.join(path, entry) 
+  
+        # If the entry is a directory, recursively call the function 
+        if os.path.isdir(entry_path): 
+            result['children'].append(create_folder_structure_json(entry_path)) 
+        # If the entry is a file, create a dictionary with name and type 
+        else: 
+            result['children'].append({'title': entry, 'file_type': 'img'}) 
+  
+    return result
+
+
+@app.get("/api/v1/subfolders/")
+def getSubfolders(path: str):
+    folder_json = create_folder_structure_json(path) 
+
+    folder_json_str = json.dumps(folder_json, indent=4) 
+
+    return [folder_json]

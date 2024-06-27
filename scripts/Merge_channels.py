@@ -11,10 +11,20 @@ import tifffile
 from tifffile import imwrite
 import cv2
 import sys
+import argparse as arg_main
+
+parser_main = arg_main.ArgumentParser()
 
 # assign directory
 warnings.filterwarnings('ignore')
-folder = './'
+
+parser_main.add_argument('-p', '--data_path', help='Data folder path.', required=True)
+parser_main.add_argument('-d', '--directory', help='tmp partition for saving the data.', required=True)
+
+
+kwargs = vars(parser_main.parse_args())
+folder = kwargs.pop('data_path')
+# folder = './'
 
 # obtain base filename
 files = [f"{f}" for f in os.listdir(folder) if "_FINAL_" in f]
@@ -24,15 +34,17 @@ print(file)
 
 # list relevant channel files, define output name
 print(f"\n - Reading {len(files)} files")
-output = file + "_merged.ome.tif"
+output_dir = kwargs.pop('directory')
+output = os.path.join(output_dir, file + "_merged.ome.tif")
 
+print('Output saved in the path: ', output)
 # read ome-tif files of each channel
 chs = []
 dtype = []
 channels = []
 for f in files:
     print(f"> Reading img {f}...")
-    chs.append(tifffile.imread(folder + f))
+    chs.append(tifffile.imread(os.path.join(folder, f)))
     dtype.append(chs[len(chs)-1].dtype)
     channels.append(f.split(file + "_")[-1].split("_FINAL")[0])
     print(f"Shape: {chs[len(chs)-1].shape}, dtype: {dtype[len(chs)-1]}, channel: {channels[len(chs)-1]}")
@@ -51,7 +63,7 @@ print(f"Shape: {stack_working.shape}")
 print(f"\n - Saving pyramidal file")
 #imwrite(f"{folder}/{file}_merged.tif", stack_working)
 num_subifds = 8 # 8 levels in the pyramidal
-with tifffile.TiffWriter(f"{file}_merged.ome.tif", bigtiff=True) as tif:
+with tifffile.TiffWriter(output, bigtiff=True) as tif:
     # use tiles and JPEG compression
     options = {'tile': (256, 256), 'compression': 'lzw', 'metadata':{'Channel': {'Name': channels}}}
     # save the base image

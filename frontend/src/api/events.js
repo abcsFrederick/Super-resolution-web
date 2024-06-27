@@ -11,8 +11,13 @@ const events = {
             params: params 
         });
     },
-    runHPC (params) {
+    runCycleGanInfer (params) {
         return axios.post(`${base.sq}/submit`, {}, {
+            params: params
+        });
+    },
+    runMergeChannels(params) {
+        return axios.post(`${base.sq}/merge_channels/submit`, {}, {
             params: params
         });
     },
@@ -23,6 +28,11 @@ const events = {
     },
     getRecords (params) {
         return axios.get(`${base.sq}/jobs`, {
+            params: params 
+        });
+    },
+    getSubfolders (params) {
+        return axios.get(`${base.sq}/subfolders`, {
             params: params 
         });
     },
