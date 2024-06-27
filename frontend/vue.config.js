@@ -16,9 +16,9 @@ module.exports = {
       args[0].title = 'Super resolution'
       return args
     });
-  },
+  }
   // lintOnSave: process.env.NODE_ENV !== 'production',
-  outputDir: process.env.NODE_ENV === 'production'
-    ? '/var/www/html/omero/'
-    : 'dist'
+  // outputDir: process.env.NODE_ENV === 'production'
+  //   ? '/var/www/html/omero/'
+  //   : 'dist'
 }

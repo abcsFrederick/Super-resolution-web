@@ -13,7 +13,7 @@
     "vant": "^4.8.4",
     "vue": "^3.4.15",
     "vue-router": "^4.2.5",
-    "vuetify": "^3.5.2",
+    "vuetify": "^3.6.10",
     "vuex": "^4.1.0"
   },
   "devDependencies": {

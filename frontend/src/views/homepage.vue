@@ -22,28 +22,71 @@
             >
             <v-row>
                 <v-col cols="6">
-                    <v-row align="center" justify="center">
-                        <v-col style="padding-bottom:0px" cols="6">
-                            <v-card outlined >
-                                <v-toolbar card>
-                                    <v-card-title class="text-h7 text-md-h6 text-lg-h5">Data Id:</v-card-title>
-                                </v-toolbar>
-                                <v-card-text>
-                                    <v-text-field clearable label="Data Id" v-model="data_id"></v-text-field>
-                                </v-card-text>
-                            </v-card>
-                        </v-col>
-                        <v-col style="padding-bottom:0px" cols="6">
-                            <v-card outlined>
-                                <v-toolbar card>
-                                    <v-card-title class="text-h7 text-md-h6 text-lg-h5">Data Type:</v-card-title>
-                                </v-toolbar>
-                                <v-card-text>
-                                    <v-text-field clearable label="Data Type" v-model="data_type"></v-text-field>
-                                </v-card-text>
-                            </v-card>
-                        </v-col>
-                    </v-row>
+                    <v-card style="margin-bottom:12px;">
+                    <div style="margin: 0 5px 12px 5px;">
+                        <v-tabs
+                            v-model="datasource_tab"
+                            color="primary"
+                        >
+                            <v-tab prepend-icon="mdi-earth" text="Omero" value="omero"></v-tab>
+                            <v-tab prepend-icon="mdi-folder-network" text="File System" value="fs"></v-tab>
+                        </v-tabs>
+                        <v-window v-model="datasource_tab">
+                            <v-window-item value="omero">
+                                <v-row>
+                                <v-col cols="6">
+                                    <v-card flat >
+                                        <v-toolbar card>
+                                            <v-card-title class="text-h7 text-md-h6 text-lg-h5">Data Id:</v-card-title>
+                                        </v-toolbar>
+                                        <v-card-text>
+                                            <v-text-field clearable label="Data Id" v-model="data_id"></v-text-field>
+                                        </v-card-text>
+                                    </v-card>
+                                </v-col>
+                                <v-col cols="6">
+                                    <v-card flat>
+                                        <v-toolbar card>
+                                            <v-card-title class="text-h7 text-md-h6 text-lg-h5">Data Type:</v-card-title>
+                                        </v-toolbar>
+                                        <v-card-text>
+                                            <v-text-field clearable label="Data Type" v-model="data_type"></v-text-field>
+                                        </v-card-text>
+                                    </v-card>
+                                </v-col>
+                            </v-row>
+                            </v-window-item>
+                            <v-window-item value="fs">
+                                <v-card
+                                flat
+                                >
+                                    <v-card-text style="padding:0px; height:180px; display: flex !important;flex-direction: column;">
+                                       <v-treeview
+                                            :items="subfolders"
+                                            item-key="name"
+                                        >
+                                            <template v-slot:prepend="{ item, open }">
+                                            <v-checkbox 
+                                                v-model="selectedInputPath"
+                                                class="selectedFolder"
+                                                :value="item.folder_path"
+                                                v-if="item.file_type === 'folder'"
+                                                hide-details>
+                                            </v-checkbox>
+                                            <v-icon v-if="item.file_type === 'folder'">
+                                                {{ open ? 'mdi-folder-open' : 'mdi-folder' }}
+                                            </v-icon>
+                                            <v-icon v-else>
+                                                {{ type_icon_maps[item.file_type] }}
+                                            </v-icon>
+                                            </template>
+                                        </v-treeview>
+                                    </v-card-text>            
+                                </v-card>
+                            </v-window-item>
+                        </v-window>
+                    </div>
+                      </v-card outlined>  
                     <v-row >
                         <v-col cols="6">
                             <v-card style="height:180px;"
@@ -56,11 +99,15 @@
                                 <v-card-subtitle></v-card-subtitle>
                                 <v-card-text style="font-size: 1.0em;">
                                     {{ dataInfo.name }}
+                                    {{ selectedInputName }}
                                 </v-card-text>
                                 <v-card-actions>
                                     <v-spacer></v-spacer>
                                 </v-card-actions>
                             </v-card>
+
+
+
                             <v-card style="height:250px; margin-top:12px" 
                                 outlined>
                                 <v-toolbar card>
@@ -72,7 +119,7 @@
                                     <v-tabs
                                       v-model="tab"
                                       bg-color="transparent"
-                                      color="basil"
+                                      color="primary"
                                       grow
                                     >
                                       <v-tab
@@ -224,6 +271,22 @@
             user: '',
             data_id: '',
             data_type: '',
+            root_path: '/scratch/IVG_scratch/miaot2/CellDIVE', // '/scratch/cluster_scratch/annemb/0_Omero/CellDIVE/',
+            subfolders: [
+            ],
+            type_icon_maps: {
+                html: 'mdi-language-html5',
+                js: 'mdi-nodejs',
+                json: 'mdi-code-json',
+                md: 'mdi-language-markdown',
+                pdf: 'mdi-file-pdf-box',
+                img: 'mdi-file-image',
+                txt: 'mdi-file-document-outline',
+                xls: 'mdi-file-excel',
+            },
+            open: [1, 2],
+            selectedInputPath: '',
+            search: null,
             dataInfo: '',
             year: new Date().getFullYear(),
             warning: '',
@@ -234,17 +297,30 @@
             slurm_id: null,
             job_name: null,
             tab: 'Analysis',
-            analysis_tabs: [{'name': 'analysis_1', 'description': 'Fetching data from omero with original format & run analysis 1 sned the result back to the omero'}, {'name': 'analysis_2', 'description': 'Fetching data from omero with original format & run analysis 2 sned the result back to the omero'}]
+            datasource_tab: 'omero',
+            analysis_tabs: [{'name': 'Infer', 'description': 'Fetching data from omero with original format & run cycle gan inference & sned the result back to the omero'}, {'name': 'Merge', 'description': 'The output will be a single, pyramidal, multichannel OME-TIF file that combines all scans designated as "FINAL" in the name.'}]
         }),
         methods: {
             runHPC() {
-                this.$api.events.runHPC({'token': this.token, 'user': this.user,
-                    'data_id': this.data_id, 'data_type': this.data_type,
-                    'data_name': this.dataInfo.name,}).then(res=> {
-                        this.slurm_id = res.data['slurm_id'];
-                        this.job_name = res.data['job_name'];
-                        this.checklogs();
-                    });
+                console.log(this.tab.name)
+                if (this.tab.name === 'Infer') {
+                    this.$api.events.runCycleGanInfer({'token': this.token, 'user': this.user,
+                        'data_id': this.data_id, 'data_type': this.data_type,
+                        'data_name': this.dataInfo.name,}).then(res=> {
+                            this.slurm_id = res.data['slurm_id'];
+                            this.job_name = res.data['job_name'];
+                            this.checklogs();
+                        });
+                }
+                if (this.tab.name === 'Merge') {
+                    this.$api.events.runMergeChannels({
+                        'data_path': this.selectedInputPath}).then(res=> {
+                            this.slurm_id = res.data['slurm_id'];
+                            this.job_name = res.data['job_name'];
+                            this.checklogs();
+                        });
+                }
+
             },
             initialData() {
                 this.slider['value'] = 0;
@@ -289,7 +365,13 @@
                 base = query ? base.slice(0, searchPos) : base
 
                 return `${base}#${path + query}`
-            }
+            },
+            // filter the folder under the FS
+            // filter () {
+            //     return this.caseSensitive
+            //     ? (item, search, textKey) => item[textKey].indexOf(search) > -1
+            //     : undefined
+            // },
         },
         mounted() {
             let urlParams = new URLSearchParams(window.location.search);
@@ -303,8 +385,16 @@
                 this.dataInfo = res.data;
             });
 
+            this.$api.events.getSubfolders({'path': this.root_path}).then(res => {
+                this.subfolders = res.data;
+            });
             this.checklogs()
             setInterval(this.checklogs, 10000);
+        },
+        computed: {
+            selectedInputName: function() {
+                return this.selectedInputPath.split('/').at(-1);
+            }
         }
     }
 
