@@ -1,3 +1,14 @@
+var publicPath;
+var outputDir;
+
+if (process.env.NODE_ENV === 'local') {
+  publicPath = '/';
+  outputDir = '/var/www/html/omero/';
+} else {
+  publicPath ='/omero/';
+  outputDir = 'dist';
+}
+
 module.exports = {
   configureWebpack: {
     devServer: {
@@ -9,12 +20,7 @@ module.exports = {
   // publicPath: process.env.NODE_ENV === 'production'
   //   ? '/omero/'
   //   : '/',
-  publicPath: () => {
-    if (process.env.NODE_ENV === 'local') {
-      return '/';
-    }
-    return '/omero/';
-  },
+  publicPath: publicPath,
   chainWebpack: config => {
     config
     .plugin('html')
@@ -27,10 +33,5 @@ module.exports = {
   // outputDir: process.env.NODE_ENV === 'production'
   //   ? '/var/www/html/omero/'
   //   : 'dist'
-  outputDir: () => {
-    if (process.env.NODE_ENV === 'local') {
-      return '/var/www/html/omero/';
-    }
-    return 'dist';
-  }
+  outputDir: outputDir
 }
