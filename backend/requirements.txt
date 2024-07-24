@@ -1,4 +1,5 @@
 fastapi
+gunicorn
 uvicorn
 SQLAlchemy
 omero-py==5.18.0
