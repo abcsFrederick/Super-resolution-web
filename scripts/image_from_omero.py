@@ -369,7 +369,8 @@ def cycle_gan_test(file_name, results_dir):
 
 if __name__ == '__main__':
     file_name = '/mnt/hpc/webdata/server/fsivgl-cellt01d/tmp/3034_G12C_pflox_veh_frame_6_channel_AF555.png'
-    cycle_gan_test(file_name)
+    results_dir = '/mnt/hpc/webdata/server/fsivgl-cellt01d/tmp/'
+    cycle_gan_test(file_name, results_dir)
 
 # python image_from_omero.py --dataroot ./datasets/low2high --name esr105_cyclegan3_interpol_batch8 --model cycle_gan 
 # --gpu_ids 2 --load_size 256 --crop_size 256 --load_iter 0 --file_name './Data/CZ_ESR105/3034_G12C_pflox_veh_frame_6_channel_AF555.png'

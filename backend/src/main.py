@@ -71,7 +71,6 @@ def connect_to_omero(user, password, host, port=4064, suid=None):
     return conn
 
 def hpc_configure(job_name, env_name, script, modules, *args, **kwargs):
-    script = script
     batchscript = """#!/bin/bash
 #SBATCH --partition=gpu
 #SBATCH --job-name={name}
