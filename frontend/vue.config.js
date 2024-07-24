@@ -6,9 +6,15 @@ module.exports = {
       https: false
     }
   },
-  publicPath: process.env.NODE_ENV === 'production'
-    ? '/omero/'
-    : '/',
+  // publicPath: process.env.NODE_ENV === 'production'
+  //   ? '/omero/'
+  //   : '/',
+  publicPath: () => {
+    if (process.env.NODE_ENV === 'local') {
+      return '/';
+    }
+    return '/omero/';
+  },
   chainWebpack: config => {
     config
     .plugin('html')
@@ -18,7 +24,13 @@ module.exports = {
     });
   },
   // lintOnSave: process.env.NODE_ENV !== 'production',
-  outputDir: process.env.NODE_ENV === 'production'
-    ? '/var/www/html/omero/'
-    : 'dist'
+  // outputDir: process.env.NODE_ENV === 'production'
+  //   ? '/var/www/html/omero/'
+  //   : 'dist'
+  outputDir: () => {
+    if (process.env.NODE_ENV === 'local') {
+      return '/var/www/html/omero/';
+    }
+    return 'dist';
+  }
 }
