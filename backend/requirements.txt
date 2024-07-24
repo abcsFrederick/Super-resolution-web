@@ -1,5 +1,5 @@
 fastapi
 uvicorn
 SQLAlchemy
-omero-py
-numpy
+omero-py==5.18.0
+numpy==1.26.3
