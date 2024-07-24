@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "serve": "npx --max_old_space_size=4096 vue-cli-service serve --host localhost",
-    "build": "vue-cli-service build",
+    "build:dev": "vue-cli-service build --mode development",
+    "build:prod": "vue-cli-service build",
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
